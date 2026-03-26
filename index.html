@@ -40,7 +40,7 @@ th.num{text-align:right}
 
 <header>
   <h1>Gnat &amp; Insect Control &mdash; US Market Top Line</h1>
-  <span>12-Month Projection &nbsp;|&nbsp; Data: Last 30 Days (Mar 2026)</span>
+  <span>12-Month Projection &nbsp;|&nbsp; Data: Last 30 Days (25 Mar 2026)</span>
 </header>
 
 <div class="main">
@@ -48,19 +48,19 @@ th.num{text-align:right}
   <!-- KPI Row -->
   <div class="kpi-row">
     <div class="kpi">
-      <div class="kpi-v">$53.7M</div>
+      <div class="kpi-v">$18.8M</div>
       <div class="kpi-l">Total 12M Revenue (est.)</div>
     </div>
     <div class="kpi">
-      <div class="kpi-v">3,520,188</div>
+      <div class="kpi-v">1,764,144</div>
       <div class="kpi-l">Total 12M Units Sold</div>
     </div>
     <div class="kpi">
-      <div class="kpi-v">114</div>
+      <div class="kpi-v">110</div>
       <div class="kpi-l">ASINs Tracked</div>
     </div>
     <div class="kpi">
-      <div class="kpi-v">68</div>
+      <div class="kpi-v">36</div>
       <div class="kpi-l">Unique Brands</div>
     </div>
   </div>
@@ -80,12 +80,12 @@ th.num{text-align:right}
   <!-- Charts Row 2: By Form -->
   <div class="charts-row">
     <div class="card">
-      <h3>Revenue Share by Form &mdash; 12M ($)</h3>
-      <div class="chart-wrap"><canvas id="formRevPie"></canvas></div>
+      <h3>Revenue Share by Segment &mdash; 12M ($)</h3>
+      <div class="chart-wrap"><canvas id="segRevPie"></canvas></div>
     </div>
     <div class="card">
-      <h3>Unit Share by Form &mdash; 12M</h3>
-      <div class="chart-wrap"><canvas id="formUnitsPie"></canvas></div>
+      <h3>Unit Share by Segment &mdash; 12M</h3>
+      <div class="chart-wrap"><canvas id="segUnitsPie"></canvas></div>
     </div>
   </div>
 
@@ -101,7 +101,6 @@ th.num{text-align:right}
           <th class="num">12M Units</th>
           <th class="num">12M Revenue</th>
           <th class="num">Rev. Share</th>
-          <th class="num">Avg Price</th>
           <th class="num">Avg Rating</th>
           <th class="num">Total Reviews</th>
         </tr>
@@ -120,7 +119,7 @@ th.num{text-align:right}
           <th>ASIN</th>
           <th>Product</th>
           <th>Brand</th>
-          <th>Form</th>
+          <th>Segment</th>
           <th class="num">Price</th>
           <th class="num">12M Units</th>
           <th class="num">12M Revenue</th>
@@ -134,9 +133,9 @@ th.num{text-align:right}
   </div>
 
   <div class="note">
-    <strong>Data source:</strong> Helium 10 X-Ray &mdash; 30-day snapshot exported 22 Mar 2026, 2 keyword scans combined (114 unique ASINs). &nbsp;&nbsp;
-    <strong>Methodology:</strong> 30-day ASIN Sales &times; 12 = 12M units; 12M units &times; listed price = 12M revenue (USD). &nbsp;&nbsp;
-    <strong>Form classification:</strong> Derived from product titles (Liquid RTU Spray, Granules, Sticky Trap, Concentrate, etc.).
+    <strong>Data source:</strong> Helium 10 X-Ray &mdash; 30-day snapshot exported 25 Mar 2026, 40 keyword scans combined (110 unique ASINs). &nbsp;&nbsp;
+    <strong>Methodology:</strong> 30-day ASIN Sales &times; 12 = 12M units; 30-day ASIN Revenue &times; 12 = 12M revenue (USD). &nbsp;&nbsp;
+    <strong>Segment classification:</strong> Sticky, Chemical, Nematodes &mdash; derived from product titles.
   </div>
 
 </div>
@@ -145,47 +144,47 @@ th.num{text-align:right}
 Chart.register(ChartDataLabels);
 
 /* ── Data ── */
-const TOTAL_REV = 53706339;
-const TOTAL_UNITS = 3520188;
+const TOTAL_REV = 18798832;
+const TOTAL_UNITS = 1764144;
 
 // Top 10 brands + "Other"
-const BRAND_LABELS = ['Bonide','Mighty Mint','Summit','Eco Strong','Atticus','Green Gobbler','VermExon','BioAdvanced','Smart Grower','Garden Safe','Other'];
-const BRAND_REV    = [8625608,5141607,4892851,2379778,2358170,2101363,1600000,1350046,1301933,1187866,22767117];
-const BRAND_UNITS  = [695544,235284,298452,68052,87372,65280,80040,120408,61824,99984,1707948];
+const BRAND_LABELS = ['Bonide','Super Ninja','Mosqueda','Cleanuper','Safer',"Kate's Home & Garden","KATE'S GARDEN",'Boromine','BioAdvanced','Kikalife','Other'];
+const BRAND_REV    = [5974273,1283217,1132462,1086186,1064172,872350,708884,663051,622529,587259,4804447];
+const BRAND_UNITS  = [457416,104388,185856,163044,121848,43656,39432,76608,49740,86832,435324];
 const BRAND_COLORS = ['#2563eb','#dc2626','#0891b2','#d97706','#7c3aed','#ea580c','#059669','#e11d48','#8b5cf6','#0284c7','#94a3b8'];
 
-// Forms
-const FORM_LABELS = ['Liquid RTU Spray','Liquid Concentrate','Sticky Trap','Granules','Gel','Liquid','Powder (DE)','Bait Trap','Biological','Electronic Trap','Dust','Aerosol'];
-const FORM_REV    = [28141279,5573474,4486067,4110877,3500207,2658756,1606090,1328997,976140,634576,390713,299162];
-const FORM_UNITS  = [1807284,265356,659760,251724,107244,99084,87576,89148,36696,58368,45324,12624];
-const FORM_COLORS = ['#2563eb','#0891b2','#d97706','#059669','#7c3aed','#0284c7','#ea580c','#e11d48','#16a34a','#8b5cf6','#a16207','#94a3b8'];
+// Segments
+const SEG_LABELS = ['Sticky','Chemical','Nematodes','Other'];
+const SEG_REV    = [9476643,8854727,292617,174845];
+const SEG_UNITS  = [1127904,609576,10656,16008];
+const SEG_COLORS = ['#d97706','#2563eb','#059669','#94a3b8'];
 
 // Top 10 brands detail
 const TOP_BRANDS = [
-  {name:'Bonide',asins:15,units:695544,rev:8625608,price:15.90,rating:4.5,reviews:103972},
-  {name:'Mighty Mint',asins:4,units:235284,rev:5141607,price:21.48,rating:4.2,reviews:71194},
-  {name:'Summit',asins:4,units:298452,rev:4892851,price:40.13,rating:4.3,reviews:38868},
-  {name:'Eco Strong',asins:1,units:68052,rev:2379778,price:34.97,rating:4.1,reviews:4238},
-  {name:'Atticus',asins:1,units:87372,rev:2358170,price:26.99,rating:4.5,reviews:3904},
-  {name:'Green Gobbler',asins:1,units:65280,rev:2101363,price:32.19,rating:4.1,reviews:15249},
-  {name:'VermExon',asins:1,units:80040,rev:1600000,price:19.99,rating:4.2,reviews:2172},
-  {name:'BioAdvanced',asins:8,units:120408,rev:1350046,price:11.94,rating:4.4,reviews:20989},
-  {name:'Smart Grower',asins:2,units:61824,rev:1301933,price:20.95,rating:4.5,reviews:1064},
-  {name:'Garden Safe',asins:4,units:99984,rev:1187866,price:15.93,rating:4.4,reviews:16789}
+  {name:'Bonide',asins:4,units:457416,rev:5974273,price:15.68,rating:4.4,reviews:103607},
+  {name:'Super Ninja',asins:5,units:104388,rev:1283217,price:12.39,rating:4.0,reviews:44028},
+  {name:'Mosqueda',asins:4,units:185856,rev:1132462,price:6.74,rating:4.4,reviews:123764},
+  {name:'Cleanuper',asins:6,units:163044,rev:1086186,price:6.67,rating:4.5,reviews:9187},
+  {name:'Safer',asins:5,units:121848,rev:1064172,price:12.34,rating:4.5,reviews:58657},
+  {name:"Kate's Home & Garden",asins:1,units:43656,rev:872350,price:19.99,rating:3.9,reviews:1336},
+  {name:"KATE'S GARDEN",asins:1,units:39432,rev:708884,price:17.99,rating:3.8,reviews:3333},
+  {name:'Boromine',asins:10,units:76608,rev:663051,price:8.99,rating:4.4,reviews:5260},
+  {name:'BioAdvanced',asins:4,units:49740,rev:622529,price:17.61,rating:4.3,reviews:14741},
+  {name:'Kikalife',asins:1,units:86832,rev:587259,price:5.94,rating:4.4,reviews:532}
 ];
 
 // Top 10 ASINs detail
 const TOP_ASINS = [
-  {asin:'B0001AUF8G',brand:'Summit',title:'Summit Chemical CO 117-6 30OZ Mosquito & Gnat Barrier',form:'Liquid RTU Spray',price:14.97,units:286596,rev:4290342,rating:4.5,reviews:34280},
-  {asin:'B07JBRJH79',brand:'Mighty Mint',title:'Mighty Mint Peppermint Oil Insect Repellent Spray 16 oz',form:'Liquid RTU Spray',price:21.98,units:193164,rev:4245745,rating:4.2,reviews:61263},
-  {asin:'B007CRG4CW',brand:'Bonide',title:'Bonide Captain Jack\'s Neem Oil, 32 oz RTU Spray',form:'Liquid RTU Spray',price:11.97,units:337872,rev:4044328,rating:4.3,reviews:47598},
-  {asin:'B0BCP3VT97',brand:'Eco Strong',title:'Fruit Fly Drain Treatment | All-Natural Drain Fly Eliminator',form:'Liquid',price:34.97,units:68052,rev:2379778,rating:4.1,reviews:4238},
-  {asin:'B0C1Q39Q9R',brand:'Atticus',title:'Atticus Talak 7.9% Bifenthrin Concentrate 32 oz',form:'Liquid Concentrate',price:26.99,units:87372,rev:2358170,rating:4.5,reviews:3904},
-  {asin:'B07CVM269Q',brand:'Green Gobbler',title:'Green Gobbler Fruit Fly Goodbye Gel Drain Treatment 1 Gal',form:'Gel',price:32.19,units:65280,rev:2101363,rating:4.1,reviews:15249},
-  {asin:'B0DSL7ZPP5',brand:'VermExon',title:'Peppermint Oil Insect & Pest Control Spray 16oz',form:'Liquid RTU Spray',price:19.99,units:80040,rev:1600000,rating:4.2,reviews:2172},
-  {asin:'B000BX1HKI',brand:'Bonide',title:'Bonide Systemic Houseplant Insect Control, 8 oz Granules',form:'Granules',price:11.99,units:110652,rev:1326717,rating:4.3,reviews:16573},
-  {asin:'B0BX4GQF68',brand:'Terro',title:'Terro Fruit Fly Traps for Indoors (6 Pack) + 270 Days Lure',form:'Bait Trap',price:17.49,units:67224,rev:1175748,rating:4.0,reviews:23751},
-  {asin:'B074HZHPD9',brand:'Wondercide',title:'Wondercide Outdoor Pest Control Spray 32 oz',form:'Liquid RTU Spray',price:37.99,units:29328,rev:1114171,rating:4.0,reviews:9975}
+  {asin:'B007CRG4CW',brand:'Bonide',title:'Bonide Captain Jack\'s Neem Oil, 32 oz RTU Spray',segment:'Chemical',price:11.97,units:352020,rev:4213711,rating:4.3,reviews:47612},
+  {asin:'B08MZN1K2Y',brand:'Mosqueda',title:'Fruit Fly Traps Fungus Gnat Traps Yellow Sticky Bug Traps 36 Pack',segment:'Sticky',price:5.99,units:168648,rev:1008514,rating:4.4,reviews:30941},
+  {asin:'B06XXRWWZC',brand:'Bonide',title:'Bonide Captain Jack\'s Neem Oil, 128 oz RTU Spray',segment:'Chemical',price:29.39,units:26568,rev:929697,rating:4.3,reviews:47612},
+  {asin:'B0CN427VBX',brand:"Kate's Home & Garden",title:'Kate\'s Plant Spray for Insects & Getting Rid of Gnats with 12 Sticky Traps',segment:'Sticky',price:19.99,units:43656,rev:872350,rating:3.9,reviews:1336},
+  {asin:'B0D5DJ7V4P',brand:'Super Ninja',title:'Super Ninja Fruit Fly Traps for Indoors - 4 Pack',segment:'Sticky',price:13.99,units:59820,rev:836303,rating:3.7,reviews:13920},
+  {asin:'B0CNGBLV5N',brand:'Cleanuper',title:'58 Pack Flying Insect Traps for Plants \u2013 Yellow Sticky Traps for Fungus Gnats',segment:'Sticky',price:5.08,units:112464,rev:733327,rating:4.2,reviews:4790},
+  {asin:'B09WWLDGDQ',brand:"KATE'S GARDEN",title:'Kate\'s Garden Plant Spray for Insects & Getting Rid of Gnats',segment:'Chemical',price:17.99,units:39432,rev:708884,rating:3.8,reviews:3333},
+  {asin:'B000BQLQU6',brand:'Bonide',title:'Bonide Insecticidal Soap, 32 oz RTU Spray Multi-Purpose Insect Control',segment:'Chemical',price:8.37,units:63828,rev:636369,rating:4.4,reviews:3739},
+  {asin:'B0F8HDZFQM',brand:'Kikalife',title:'Fruit Fly Trap & Fungus Gnat Traps 40 Pack \u2013 Yellow Sticky Gnat Traps',segment:'Sticky',price:5.94,units:86832,rev:587259,rating:4.4,reviews:532},
+  {asin:'B09T3SZ79V',brand:'Safer',title:'Safer Home Trap Refill Pack of Glue Cards for Indoor Fly Trap',segment:'Sticky',price:6.97,units:89916,rev:561134,rating:4.6,reviews:12409}
 ];
 
 /* ── Helpers ── */
@@ -254,8 +253,8 @@ function makePie(id, labels, data, colors, total, prefix) {
 /* ── Render Charts ── */
 makePie('brandRevPie', BRAND_LABELS, BRAND_REV, BRAND_COLORS, TOTAL_REV, '$');
 makePie('brandUnitsPie', BRAND_LABELS, BRAND_UNITS, BRAND_COLORS, TOTAL_UNITS, '#');
-makePie('formRevPie', FORM_LABELS, FORM_REV, FORM_COLORS, TOTAL_REV, '$');
-makePie('formUnitsPie', FORM_LABELS, FORM_UNITS, FORM_COLORS, TOTAL_UNITS, '#');
+makePie('segRevPie', SEG_LABELS, SEG_REV, SEG_COLORS, TOTAL_REV, '$');
+makePie('segUnitsPie', SEG_LABELS, SEG_UNITS, SEG_COLORS, TOTAL_UNITS, '#');
 
 /* ── Brands Table ── */
 const bTbody = document.getElementById('brandTable');
@@ -269,7 +268,6 @@ TOP_BRANDS.forEach((b, i) => {
     <td class="num">${fmtN(b.units)}</td>
     <td class="num">${fmt$(b.rev)}</td>
     <td class="num">${pct(b.rev, TOTAL_REV)}</td>
-    <td class="num">${'$'+b.price.toFixed(2)}</td>
     <td class="num">${b.rating.toFixed(1)} ★</td>
     <td class="num">${fmtN(b.reviews)}</td>
   </tr>`;
@@ -293,7 +291,7 @@ TOP_ASINS.forEach((a, i) => {
     <td><a class="asin-link" href="https://www.amazon.com/dp/${a.asin}" target="_blank">${a.asin}</a></td>
     <td class="title-cell" title="${a.title}">${a.title}</td>
     <td>${a.brand}</td>
-    <td><span class="form-badge">${a.form}</span></td>
+    <td><span class="form-badge">${a.segment}</span></td>
     <td class="num">$${a.price.toFixed(2)}</td>
     <td class="num">${fmtN(a.units)}</td>
     <td class="num">${fmt$(a.rev)}</td>
