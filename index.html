@@ -34,6 +34,11 @@ th.num{text-align:right}
 .asin-link:hover{text-decoration:underline}
 .title-cell{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .form-badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:.68rem;font-weight:500;background:#e2e8f0;color:#475569}
+th.sortable{cursor:pointer;user-select:none;position:relative;padding-right:18px}
+th.sortable:hover{color:#0f2942;background:#eef2f7}
+th.sortable::after{content:'⇅';position:absolute;right:3px;top:50%;transform:translateY(-50%);font-size:.65rem;color:#94a3b8}
+th.sortable.asc::after{content:'▲';color:#2563eb}
+th.sortable.desc::after{content:'▼';color:#2563eb}
 </style>
 </head>
 <body>
@@ -98,11 +103,11 @@ th.num{text-align:right}
           <th>#</th>
           <th>Brand</th>
           <th class="num">ASINs</th>
-          <th class="num">12M Units</th>
-          <th class="num">12M Revenue</th>
-          <th class="num">Rev. Share</th>
+          <th class="num sortable" data-sort="units" data-table="brand">12M Units</th>
+          <th class="num sortable" data-sort="rev" data-table="brand">12M Revenue</th>
+          <th class="num sortable" data-sort="revShare" data-table="brand">Rev. Share</th>
           <th class="num">Avg Rating</th>
-          <th class="num">Total Reviews</th>
+          <th class="num sortable" data-sort="reviews" data-table="brand">Total Reviews</th>
         </tr>
       </thead>
       <tbody id="brandTable"></tbody>
@@ -120,10 +125,10 @@ th.num{text-align:right}
           <th>Product</th>
           <th>Brand</th>
           <th>Segment</th>
-          <th class="num">Price</th>
-          <th class="num">12M Units</th>
-          <th class="num">12M Revenue</th>
-          <th class="num">Rev. Share</th>
+          <th class="num sortable" data-sort="price" data-table="asin">Price</th>
+          <th class="num sortable" data-sort="units" data-table="asin">12M Units</th>
+          <th class="num sortable" data-sort="rev" data-table="asin">12M Revenue</th>
+          <th class="num sortable" data-sort="revShare" data-table="asin">Rev. Share</th>
           <th class="num">Rating</th>
           <th class="num">Reviews</th>
         </tr>
@@ -257,59 +262,94 @@ makePie('brandUnitsPie', BRAND_LABELS, BRAND_UNITS, BRAND_COLORS, TOTAL_UNITS, '
 makePie('segRevPie', SEG_LABELS, SEG_REV, SEG_COLORS, TOTAL_REV, '$');
 makePie('segUnitsPie', SEG_LABELS, SEG_UNITS, SEG_COLORS, TOTAL_UNITS, '#');
 
-/* ── Brands Table ── */
-const bTbody = document.getElementById('brandTable');
-let bTotalUnits = 0, bTotalRev = 0, bTotalReviews = 0;
-TOP_BRANDS.forEach((b, i) => {
-  bTotalUnits += b.units; bTotalRev += b.rev; bTotalReviews += b.reviews;
-  bTbody.innerHTML += `<tr>
-    <td>${i+1}</td>
-    <td><strong>${b.name}</strong></td>
-    <td class="num">${b.asins}</td>
-    <td class="num">${fmtN(b.units)}</td>
-    <td class="num">${fmt$(b.rev)}</td>
-    <td class="num">${pct(b.rev, TOTAL_REV)}</td>
-    <td class="num">${b.rating.toFixed(1)} ★</td>
-    <td class="num">${fmtN(b.reviews)}</td>
-  </tr>`;
-});
-bTbody.innerHTML += `<tr class="total-row">
-  <td colspan="2"><strong>Top 10 Total</strong></td>
-  <td class="num">—</td>
-  <td class="num">${fmtN(bTotalUnits)}</td>
-  <td class="num">${fmt$(bTotalRev)}</td>
-  <td class="num">${pct(bTotalRev, TOTAL_REV)}</td>
-  <td class="num" colspan="3">—</td>
-</tr>`;
+/* ── Sortable Tables ── */
+let brandSort = { key: null, dir: 'desc' };
+let asinSort = { key: null, dir: 'desc' };
 
-/* ── ASINs Table ── */
-const aTbody = document.getElementById('asinTable');
-let aTotalUnits = 0, aTotalRev = 0;
-TOP_ASINS.forEach((a, i) => {
-  aTotalUnits += a.units; aTotalRev += a.rev;
-  aTbody.innerHTML += `<tr>
-    <td>${i+1}</td>
-    <td><a class="asin-link" href="https://www.amazon.com/dp/${a.asin}" target="_blank">${a.asin}</a></td>
-    <td class="title-cell" title="${a.title}">${a.title}</td>
-    <td>${a.brand}</td>
-    <td><span class="form-badge" style="background:${SEG_COLOR_MAP[a.segment]||'#94a3b8'};color:#fff">${a.segment}</span></td>
-    <td class="num">$${a.price.toFixed(2)}</td>
-    <td class="num">${fmtN(a.units)}</td>
-    <td class="num">${fmt$(a.rev)}</td>
-    <td class="num">${pct(a.rev, TOTAL_REV)}</td>
-    <td class="num">${a.rating.toFixed(1)} ★</td>
-    <td class="num">${fmtN(a.reviews)}</td>
+function renderBrandTable(data) {
+  const bTbody = document.getElementById('brandTable');
+  let bTotalUnits = 0, bTotalRev = 0, bTotalReviews = 0;
+  let html = '';
+  data.forEach((b, i) => {
+    bTotalUnits += b.units; bTotalRev += b.rev; bTotalReviews += b.reviews;
+    html += `<tr>
+      <td>${i+1}</td>
+      <td><strong>${b.name}</strong></td>
+      <td class="num">${b.asins}</td>
+      <td class="num">${fmtN(b.units)}</td>
+      <td class="num">${fmt$(b.rev)}</td>
+      <td class="num">${pct(b.rev, TOTAL_REV)}</td>
+      <td class="num">${b.rating.toFixed(1)} ★</td>
+      <td class="num">${fmtN(b.reviews)}</td>
+    </tr>`;
+  });
+  html += `<tr class="total-row">
+    <td colspan="2"><strong>Top 10 Total</strong></td>
+    <td class="num">—</td>
+    <td class="num">${fmtN(bTotalUnits)}</td>
+    <td class="num">${fmt$(bTotalRev)}</td>
+    <td class="num">${pct(bTotalRev, TOTAL_REV)}</td>
+    <td class="num" colspan="3">—</td>
   </tr>`;
+  bTbody.innerHTML = html;
+}
+
+function renderAsinTable(data) {
+  const aTbody = document.getElementById('asinTable');
+  let aTotalUnits = 0, aTotalRev = 0;
+  let html = '';
+  data.forEach((a, i) => {
+    aTotalUnits += a.units; aTotalRev += a.rev;
+    html += `<tr>
+      <td>${i+1}</td>
+      <td><a class="asin-link" href="https://www.amazon.com/dp/${a.asin}" target="_blank">${a.asin}</a></td>
+      <td class="title-cell" title="${a.title}">${a.title}</td>
+      <td>${a.brand}</td>
+      <td><span class="form-badge" style="background:${SEG_COLOR_MAP[a.segment]||'#94a3b8'};color:#fff">${a.segment}</span></td>
+      <td class="num">$${a.price.toFixed(2)}</td>
+      <td class="num">${fmtN(a.units)}</td>
+      <td class="num">${fmt$(a.rev)}</td>
+      <td class="num">${pct(a.rev, TOTAL_REV)}</td>
+      <td class="num">${a.rating.toFixed(1)} ★</td>
+      <td class="num">${fmtN(a.reviews)}</td>
+    </tr>`;
+  });
+  html += `<tr class="total-row">
+    <td colspan="4"><strong>Top 10 Total</strong></td>
+    <td></td>
+    <td class="num">—</td>
+    <td class="num">${fmtN(aTotalUnits)}</td>
+    <td class="num">${fmt$(aTotalRev)}</td>
+    <td class="num">${pct(aTotalRev, TOTAL_REV)}</td>
+    <td class="num" colspan="2">—</td>
+  </tr>`;
+  aTbody.innerHTML = html;
+}
+
+function sortData(arr, key, dir) {
+  const sorted = [...arr];
+  const valFn = key === 'revShare' ? d => d.rev / TOTAL_REV : d => d[key];
+  sorted.sort((a, b) => dir === 'asc' ? valFn(a) - valFn(b) : valFn(b) - valFn(a));
+  return sorted;
+}
+
+document.querySelectorAll('th.sortable').forEach(th => {
+  th.addEventListener('click', () => {
+    const table = th.dataset.table;
+    const key = th.dataset.sort;
+    const state = table === 'brand' ? brandSort : asinSort;
+    if (state.key === key) { state.dir = state.dir === 'desc' ? 'asc' : 'desc'; }
+    else { state.key = key; state.dir = 'desc'; }
+    document.querySelectorAll(`th.sortable[data-table="${table}"]`).forEach(h => h.classList.remove('asc','desc'));
+    th.classList.add(state.dir);
+    const src = table === 'brand' ? TOP_BRANDS : TOP_ASINS;
+    const sorted = sortData(src, key, state.dir);
+    table === 'brand' ? renderBrandTable(sorted) : renderAsinTable(sorted);
+  });
 });
-aTbody.innerHTML += `<tr class="total-row">
-  <td colspan="4"><strong>Top 10 Total</strong></td>
-  <td></td>
-  <td class="num">—</td>
-  <td class="num">${fmtN(aTotalUnits)}</td>
-  <td class="num">${fmt$(aTotalRev)}</td>
-  <td class="num">${pct(aTotalRev, TOTAL_REV)}</td>
-  <td class="num" colspan="2">—</td>
-</tr>`;
+
+renderBrandTable(TOP_BRANDS);
+renderAsinTable(TOP_ASINS);
 </script>
 </body>
 </html>
