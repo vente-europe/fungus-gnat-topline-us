@@ -158,6 +158,7 @@ const SEG_LABELS = ['Sticky','Chemical','Nematodes','Other'];
 const SEG_REV    = [9476643,8854727,292617,174845];
 const SEG_UNITS  = [1127904,609576,10656,16008];
 const SEG_COLORS = ['#d97706','#2563eb','#059669','#94a3b8'];
+const SEG_COLOR_MAP = {'Sticky':'#d97706','Chemical':'#2563eb','Nematodes':'#059669','Other':'#94a3b8'};
 
 // Top 10 brands detail
 const TOP_BRANDS = [
@@ -291,7 +292,7 @@ TOP_ASINS.forEach((a, i) => {
     <td><a class="asin-link" href="https://www.amazon.com/dp/${a.asin}" target="_blank">${a.asin}</a></td>
     <td class="title-cell" title="${a.title}">${a.title}</td>
     <td>${a.brand}</td>
-    <td><span class="form-badge">${a.segment}</span></td>
+    <td><span class="form-badge" style="background:${SEG_COLOR_MAP[a.segment]||'#94a3b8'};color:#fff">${a.segment}</span></td>
     <td class="num">$${a.price.toFixed(2)}</td>
     <td class="num">${fmtN(a.units)}</td>
     <td class="num">${fmt$(a.rev)}</td>
